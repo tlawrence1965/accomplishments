@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}New Accomplishment{% endblock %}
+{% block content %}
+
+<h2>New Accomplishment</h2>
+
+<form method="post" enctype="multipart/form-data" class="entry-form">
+  <label>
+    Date
+    <input type="date" name="date" value="{{ today }}" required>
+  </label>
+
+  <label>
+    Title
+    <input type="text" name="title" required maxlength="200" placeholder="Shipped onboarding redesign">
+  </label>
+
+  <label>
+    Description
+    <textarea name="description" rows="6" placeholder="What you did, why it mattered, who benefited."></textarea>
+  </label>
+
+  <div class="row">
+    <label>
+      Category
+      <select name="category">
+        {% for c in categories %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+      </select>
+    </label>
+
+    <label>
+      Impact
+      <select name="impact">
+        {% for i in impact_levels %}
+          <option value="{{ i }}" {% if i == 'Medium' %}selected{% endif %}>{{ i }}</option>
+        {% endfor %}
+      </select>
+    </label>
+  </div>
+
+  <label>
+    Links (comma-separated)
+    <input type="text" name="links" placeholder="https://github.com/.../pull/123, https://docs/...">
+  </label>
+
+  <label>
+    Artifacts (optional)
+    <input type="file" name="artifacts" multiple>
+    <small>Up to 25MB per upload. Attach screenshots, docs, slides — anything supporting the win.</small>
+  </label>
+
+  <button type="submit">Save</button>
+</form>
+
+{% endblock %}

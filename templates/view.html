@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}{{ entry.title }}{% endblock %}
+{% block content %}
+
+<article class="entry-detail impact-{{ entry.impact|lower }}">
+  <div class="entry-meta">
+    <span class="date">{{ entry.date }}</span>
+    <span class="category">{{ entry.category }}</span>
+    <span class="impact">{{ entry.impact }}</span>
+  </div>
+
+  <h2>{{ entry.title }}</h2>
+
+  {% if entry.description %}
+    <p class="desc">{{ entry.description }}</p>
+  {% endif %}
+
+  {% if entry.links %}
+    <div class="links">
+      <strong>Links:</strong>
+      {% for link in entry.links.split(',') %}
+        {% set l = link.strip() %}
+        {% if l %}<a href="{{ l }}" target="_blank" rel="noopener">{{ l }}</a>{% endif %}
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  {% if artifacts %}
+    <h3>Artifacts</h3>
+    <ul class="artifact-list">
+      {% for a in artifacts %}
+        <li>
+          <a href="{{ url_for('download_artifact', stored_path=a.stored_path) }}">{{ a.filename }}</a>
+          <small>({{ (a.size_bytes / 1024)|round(1) }} KB · {{ a.mime_type }})</small>
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <form method="post" action="{{ url_for('delete_entry', entry_id=entry.id) }}"
+        onsubmit="return confirm('Delete this entry and its files?');" class="danger">
+    <button type="submit">Delete entry</button>
+  </form>
+</article>
+
+{% endblock %}

@@ -1,0 +1,20 @@
+# Replace example.com with your actual domain.
+# Caddy will automatically obtain and renew a Let's Encrypt certificate.
+
+example.com {
+    # Cap upload size at the proxy layer too (Flask also enforces 25MB)
+    request_body {
+        max_size 30MB
+    }
+
+    reverse_proxy 127.0.0.1:8000
+
+    # Basic security headers
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+
+    encode gzip
+}

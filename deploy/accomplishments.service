@@ -1,0 +1,23 @@
+[Unit]
+Description=Accomplishments Flask app
+After=network.target
+
+[Service]
+Type=simple
+User=accomplishments
+WorkingDirectory=/home/accomplishments/app
+Environment="PATH=/home/accomplishments/app/.venv/bin"
+Environment="DATABASE=/home/accomplishments/app/accomplishments.db"
+Environment="UPLOAD_DIR=/home/accomplishments/app/uploads"
+EnvironmentFile=/home/accomplishments/app/.env
+ExecStart=/home/accomplishments/app/.venv/bin/gunicorn \
+    --workers 2 \
+    --bind 127.0.0.1:8000 \
+    --access-logfile - \
+    --error-logfile - \
+    app:app
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
