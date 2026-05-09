@@ -4,6 +4,13 @@
 
 <h2>Edit Accomplishment</h2>
 
+{# Delete-artifact forms live outside the main form (nesting <form> is invalid HTML) #}
+{% for a in artifacts %}
+  <form id="delete-artifact-{{ a.id }}" method="post"
+        action="{{ url_for('delete_artifact', artifact_id=a.id) }}"
+        onsubmit="return confirm('Remove this file?');"></form>
+{% endfor %}
+
 <form method="post" enctype="multipart/form-data" class="entry-form">
   <label>
     Date
@@ -58,13 +65,6 @@
         {% endfor %}
       </ul>
     </fieldset>
-
-    {# Separate forms for delete buttons so they don't submit the edit form #}
-    {% for a in artifacts %}
-      <form id="delete-artifact-{{ a.id }}" method="post"
-            action="{{ url_for('delete_artifact', artifact_id=a.id) }}"
-            onsubmit="return confirm('Remove this file?');"></form>
-    {% endfor %}
   {% endif %}
 
   <label>
