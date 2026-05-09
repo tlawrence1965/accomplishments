@@ -138,6 +138,74 @@ def view_entry(entry_id):
     ).fetchall()
     return render_template("view.html", entry=entry, artifacts=artifacts)
 
+@app.route("/entry/<int:entry_id>/edit", methods=["GET", "POST"])
+def edit_entry(entry_id):
+    """Edit an existing accomplishment, with optional new file uploads."""
+    db = get_db()
+    entry = db.execute(
+        "SELECT * FROM accomplishments WHERE id = ?", (entry_id,)
+    ).fetchone()
+    if not entry:
+        abort(404)
+
+    if request.method == "POST":
+        db.execute(
+            """UPDATE accomplishments
+               SET date = ?, title = ?, description = ?,
+                   category = ?, impact = ?, links = ?
+               WHERE id = ?""",
+            (
+                request.form["date"] or date.today().isoformat(),
+                request.form["title"].strip(),
+                request.form.get("description", "").strip(),
+                request.form.get("category", "Other"),
+                request.form.get("impact", "Medium"),
+                request.form.get("links", "").strip(),
+                entry_id,
+            ),
+        )
+
+        # Handle any newly uploaded artifacts
+        files = request.files.getlist("artifacts")
+        for f in files:
+            if f and f.filename:
+                save_artifact(db, entry_id, f)
+
+        db.commit()
+        flash("Accomplishment updated.", "success")
+        return redirect(url_for("view_entry", entry_id=entry_id))
+
+    artifacts = db.execute(
+        "SELECT * FROM artifacts WHERE accomplishment_id = ? ORDER BY uploaded_at",
+        (entry_id,)
+    ).fetchall()
+    return render_template(
+        "edit.html",
+        entry=entry,
+        artifacts=artifacts,
+        categories=CATEGORIES,
+        impact_levels=IMPACT_LEVELS,
+    )
+
+
+@app.route("/artifact/<int:artifact_id>/delete", methods=["POST"])
+def delete_artifact(artifact_id):
+    """Remove a single artifact from an entry."""
+    db = get_db()
+    artifact = db.execute(
+        "SELECT * FROM artifacts WHERE id = ?", (artifact_id,)
+    ).fetchone()
+    if not artifact:
+        abort(404)
+    accomplishment_id = artifact["accomplishment_id"]
+    try:
+        (UPLOAD_DIR / artifact["stored_path"]).unlink(missing_ok=True)
+    except OSError:
+        pass
+    db.execute("DELETE FROM artifacts WHERE id = ?", (artifact_id,))
+    db.commit()
+    flash("Artifact removed.", "success")
+    return redirect(url_for("edit_entry", entry_id=accomplishment_id))
 
 @app.route("/entry/<int:entry_id>/delete", methods=["POST"])
 def delete_entry(entry_id):

@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Edit: {{ entry.title }}{% endblock %}
+{% block content %}
+
+<h2>Edit Accomplishment</h2>
+
+<form method="post" enctype="multipart/form-data" class="entry-form">
+  <label>
+    Date
+    <input type="date" name="date" value="{{ entry.date }}" required>
+  </label>
+
+  <label>
+    Title
+    <input type="text" name="title" required maxlength="200" value="{{ entry.title }}">
+  </label>
+
+  <label>
+    Description
+    <textarea name="description" rows="6">{{ entry.description or '' }}</textarea>
+  </label>
+
+  <div class="row">
+    <label>
+      Category
+      <select name="category">
+        {% for c in categories %}
+          <option value="{{ c }}" {% if c == entry.category %}selected{% endif %}>{{ c }}</option>
+        {% endfor %}
+      </select>
+    </label>
+
+    <label>
+      Impact
+      <select name="impact">
+        {% for i in impact_levels %}
+          <option value="{{ i }}" {% if i == entry.impact %}selected{% endif %}>{{ i }}</option>
+        {% endfor %}
+      </select>
+    </label>
+  </div>
+
+  <label>
+    Links (comma-separated)
+    <input type="text" name="links" value="{{ entry.links or '' }}">
+  </label>
+
+  {% if artifacts %}
+    <fieldset class="existing-artifacts">
+      <legend>Existing artifacts</legend>
+      <ul>
+        {% for a in artifacts %}
+          <li>
+            <a href="{{ url_for('download_artifact', stored_path=a.stored_path) }}">{{ a.filename }}</a>
+            <small>({{ (a.size_bytes / 1024)|round(1) }} KB)</small>
+            <button type="submit" form="delete-artifact-{{ a.id }}" class="link-button">remove</button>
+          </li>
+        {% endfor %}
+      </ul>
+    </fieldset>
+
+    {# Separate forms for delete buttons so they don't submit the edit form #}
+    {% for a in artifacts %}
+      <form id="delete-artifact-{{ a.id }}" method="post"
+            action="{{ url_for('delete_artifact', artifact_id=a.id) }}"
+            onsubmit="return confirm('Remove this file?');"></form>
+    {% endfor %}
+  {% endif %}
+
+  <label>
+    Add more artifacts
+    <input type="file" name="artifacts" multiple>
+    <small>Up to 25MB per upload.</small>
+  </label>
+
+  <div class="form-actions">
+    <button type="submit">Save changes</button>
+    <a href="{{ url_for('view_entry', entry_id=entry.id) }}" class="cancel">Cancel</a>
+  </div>
+</form>
+
+{% endblock %}
