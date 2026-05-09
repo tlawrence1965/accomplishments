@@ -29,7 +29,48 @@ app.teardown_appcontext(close_db)
 
 CATEGORIES = ["Project", "Mentorship", "Process", "Learning", "Leadership", "Other"]
 IMPACT_LEVELS = ["Low", "Medium", "High"]
+def parse_tags(raw):
+    """Turn 'cross-team, mentoring,leadership' into ['cross-team', 'mentoring', 'leadership']."""
+    if not raw:
+        return []
+    seen = set()
+    result = []
+    for t in raw.split(","):
+        t = t.strip().lower()
+        if t and t not in seen:
+            seen.add(t)
+            result.append(t)
+    return result
 
+
+def set_tags(db, accomplishment_id, tag_names):
+    """Replace the tags on an accomplishment with the given list."""
+    db.execute(
+        "DELETE FROM accomplishment_tags WHERE accomplishment_id = ?",
+        (accomplishment_id,),
+    )
+    for name in tag_names:
+        # Insert the tag if it doesn't exist, then look up its id
+        db.execute("INSERT OR IGNORE INTO tags (name) VALUES (?)", (name,))
+        tag_id = db.execute(
+            "SELECT id FROM tags WHERE name = ?", (name,)
+        ).fetchone()[0]
+        db.execute(
+            "INSERT INTO accomplishment_tags (accomplishment_id, tag_id) VALUES (?, ?)",
+            (accomplishment_id, tag_id),
+        )
+
+
+def get_tags_for(db, accomplishment_id):
+    """Return a list of tag name strings for an entry."""
+    rows = db.execute(
+        """SELECT t.name FROM tags t
+           JOIN accomplishment_tags at ON at.tag_id = t.id
+           WHERE at.accomplishment_id = ?
+           ORDER BY t.name""",
+        (accomplishment_id,),
+    ).fetchall()
+    return [r[0] for r in rows]
 
 # --- Routes ---
 @app.route("/")
@@ -39,29 +80,40 @@ def index():
     category = request.args.get("category", "")
     quarter = request.args.get("quarter", "")
     year = request.args.get("year", "")
+    tag = request.args.get("tag", "").strip().lower()
 
-    query = "SELECT * FROM accomplishments WHERE 1=1"
+    query = """
+        SELECT a.* FROM accomplishments a
+        WHERE 1=1
+    """
     params = []
 
+    if tag:
+        query = """
+            SELECT a.* FROM accomplishments a
+            JOIN accomplishment_tags at ON at.accomplishment_id = a.id
+            JOIN tags t ON t.id = at.tag_id
+            WHERE t.name = ?
+        """
+        params.append(tag)
+
     if category:
-        query += " AND category = ?"
+        query += " AND a.category = ?"
         params.append(category)
     if year:
-        query += " AND strftime('%Y', date) = ?"
+        query += " AND strftime('%Y', a.date) = ?"
         params.append(year)
     if quarter:
-        # Map Q1-Q4 to month ranges
         quarters = {"Q1": ("01", "03"), "Q2": ("04", "06"),
                     "Q3": ("07", "09"), "Q4": ("10", "12")}
         if quarter in quarters:
             start, end = quarters[quarter]
-            query += " AND strftime('%m', date) BETWEEN ? AND ?"
+            query += " AND strftime('%m', a.date) BETWEEN ? AND ?"
             params.extend([start, end])
 
-    query += " ORDER BY date DESC, id DESC"
+    query += " ORDER BY a.date DESC, a.id DESC"
     entries = db.execute(query, params).fetchall()
 
-    # Attach artifact counts to each entry
     entries_with_counts = []
     for entry in entries:
         count = db.execute(
@@ -70,7 +122,6 @@ def index():
         ).fetchone()[0]
         entries_with_counts.append({**dict(entry), "artifact_count": count})
 
-    # For the year filter dropdown
     years = [r["y"] for r in db.execute(
         "SELECT DISTINCT strftime('%Y', date) AS y FROM accomplishments ORDER BY y DESC"
     ).fetchall()]
@@ -83,9 +134,8 @@ def index():
         selected_category=category,
         selected_quarter=quarter,
         selected_year=year,
+        selected_tag=tag,
     )
-
-
 @app.route("/new", methods=["GET", "POST"])
 def new_entry():
     """Create a new accomplishment, optionally with file uploads."""
@@ -104,7 +154,7 @@ def new_entry():
             ),
         )
         accomplishment_id = cur.lastrowid
-
+        set_tags(db, accomplishment_id, parse_tags(request.form.get("tags", "")))
         # Handle file uploads
         files = request.files.getlist("artifacts")
         for f in files:
@@ -125,7 +175,6 @@ def new_entry():
 
 @app.route("/entry/<int:entry_id>")
 def view_entry(entry_id):
-    """View a single accomplishment with its artifacts."""
     db = get_db()
     entry = db.execute(
         "SELECT * FROM accomplishments WHERE id = ?", (entry_id,)
@@ -136,7 +185,8 @@ def view_entry(entry_id):
         "SELECT * FROM artifacts WHERE accomplishment_id = ? ORDER BY uploaded_at",
         (entry_id,)
     ).fetchall()
-    return render_template("view.html", entry=entry, artifacts=artifacts)
+    tags = get_tags_for(db, entry_id)
+    return render_template("view.html", entry=entry, artifacts=artifacts, tags=tags)
 
 @app.route("/entry/<int:entry_id>/edit", methods=["GET", "POST"])
 def edit_entry(entry_id):
@@ -164,7 +214,7 @@ def edit_entry(entry_id):
                 entry_id,
             ),
         )
-
+        set_tags(db, entry_id, parse_tags(request.form.get("tags", "")))
         # Handle any newly uploaded artifacts
         files = request.files.getlist("artifacts")
         for f in files:
@@ -183,10 +233,10 @@ def edit_entry(entry_id):
         "edit.html",
         entry=entry,
         artifacts=artifacts,
+        tags=get_tags_for(db, entry_id),
         categories=CATEGORIES,
         impact_levels=IMPACT_LEVELS,
     )
-
 
 @app.route("/artifact/<int:artifact_id>/delete", methods=["POST"])
 def delete_artifact(artifact_id):

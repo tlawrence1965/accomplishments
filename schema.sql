@@ -26,3 +26,18 @@ CREATE TABLE IF NOT EXISTS artifacts (
 );
 
 CREATE INDEX IF NOT EXISTS idx_artifacts_accomplishment ON artifacts(accomplishment_id);
+
+CREATE TABLE IF NOT EXISTS tags (
+    id   INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE COLLATE NOCASE
+);
+
+CREATE TABLE IF NOT EXISTS accomplishment_tags (
+    accomplishment_id INTEGER NOT NULL,
+    tag_id            INTEGER NOT NULL,
+    PRIMARY KEY (accomplishment_id, tag_id),
+    FOREIGN KEY (accomplishment_id) REFERENCES accomplishments(id) ON DELETE CASCADE,
+    FOREIGN KEY (tag_id)            REFERENCES tags(id)            ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_accomplishment_tags_tag ON accomplishment_tags(tag_id);

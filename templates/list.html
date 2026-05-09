@@ -3,6 +3,12 @@
 {% block content %}
 
 <form method="get" class="filters">
+  {% if selected_tag %}
+  <div class="active-tag-filter">
+    Filtered by <span class="tag">#{{ selected_tag }}</span>
+    <a href="{{ url_for('index') }}">clear</a>
+  </div>
+  {% endif %}
   <select name="category">
     <option value="">All categories</option>
     {% for c in categories %}

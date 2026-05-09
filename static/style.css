@@ -231,3 +231,31 @@ form.danger button {
   font-size: 0.85rem;
   text-decoration: underline;
 }
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.75rem 0;
+}
+
+.tag {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  background: var(--border);
+  color: var(--fg);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+
+.tag:hover { background: var(--accent); color: white; }
+
+.active-tag-filter {
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.active-tag-filter .tag { background: var(--accent); color: white; }
+.active-tag-filter a { margin-left: 0.5rem; color: var(--muted); }

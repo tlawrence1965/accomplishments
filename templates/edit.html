@@ -51,7 +51,11 @@
     Links (comma-separated)
     <input type="text" name="links" value="{{ entry.links or '' }}">
   </label>
-
+  <label>
+    Tags (comma-separated)
+    <input type="text" name="tags" value="{{ tags|join(', ') }}" placeholder="cross-team, mentoring">
+    <small>Lowercase, free-form.</small>
+  </label>
   {% if artifacts %}
     <fieldset class="existing-artifacts">
       <legend>Existing artifacts</legend>
