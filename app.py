@@ -73,6 +73,16 @@ def get_tags_for(db, accomplishment_id):
     return [r[0] for r in rows]
 
 # --- Routes ---
+@app.route('/health')
+def health():
+    try:
+        db = get_db()
+        db.execute('SELECT 1')
+        return 'ok', 200
+    except Exception:
+        return 'database unreachable', 503
+
+
 @app.route("/")
 def index():
     """List view with optional filters."""
