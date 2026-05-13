@@ -1,8 +1,30 @@
+# Python
 __pycache__/
 *.pyc
+*.pyo
+
+# Virtual environment
 .venv/
 venv/
+
+# Database — data, not code
 *.db
-uploads/
+*.sqlite
+*.sqlite3
+instance/
+
+# Secrets
 .env
+*.env
+
+# Logs
+*.log
+
+# Editor scratch
+.vscode/
+.idea/
+*.swp
+
+# Other stuff
 .DS_Store
+uploads/
