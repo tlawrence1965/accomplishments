@@ -348,6 +348,18 @@ def export():
         headers={"Content-Disposition": f"attachment; filename=accomplishments-{year}-{quarter}.md"},
     )
 
+@app.route("/uploads-browser")
+def uploads_browser():
+    db = get_db()
+    artifacts = db.execute(
+        """SELECT ar.id, ar.filename, ar.stored_path, ar.mime_type,
+                  ar.size_bytes, ar.uploaded_at,
+                  ac.id AS entry_id, ac.title AS entry_title, ac.date AS entry_date
+           FROM artifacts ar
+           JOIN accomplishments ac ON ac.id = ar.accomplishment_id
+           ORDER BY ar.uploaded_at DESC"""
+    ).fetchall()
+    return render_template("uploads_browser.html", artifacts=artifacts)
 
 # --- Helpers ---
 def save_artifact(db, accomplishment_id, file_storage):
