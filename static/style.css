@@ -3,7 +3,7 @@
   --fg: #222;
   --muted: #666;
   --border: #e2e2dd;
-  --accent: #3b6ea8;
+  --accent: #5b82b0;
   --high: #c14545;
   --medium: #c98a2b;
   --low: #5e7d5e;
@@ -16,7 +16,7 @@
     --fg: #e8e8e6;
     --muted: #9a9a96;
     --border: #2c2c2e;
-    --accent: #7aa9d8;
+    --accent: #8ab4d8;
     --card: #1f1f21;
   }
 }
