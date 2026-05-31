@@ -20,7 +20,6 @@
     <tr>
       <td>{{ a.uploaded_at[:10] }}</td>
       <td>{{ a.filename }}</td>
-      <td>{{ a.mime_type }}</td>
       <td>{{ (a.size_bytes / 1024) | round(1) }} KB</td>
       <td><a href="{{ url_for('view_entry', entry_id=a.entry_id) }}">{{ a.entry_title }}</a></td>
       <td><a href="{{ url_for('download_artifact', stored_path=a.stored_path) }}">Download</a></td>
