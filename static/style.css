@@ -31,6 +31,8 @@ body {
   line-height: 1.5;
 }
 
+a { color: var(--accent); }
+
 header {
   border-bottom: 1px solid var(--border);
   padding: 1rem 1.5rem;
