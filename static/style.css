@@ -259,5 +259,30 @@ form.danger button {
   color: var(--muted);
 }
 
+.uploads-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.uploads-table th {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 2px solid var(--border);
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.uploads-table td {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.uploads-table tr:last-child td {
+  border-bottom: none;
+}
+
 .active-tag-filter .tag { background: var(--accent); color: white; }
 .active-tag-filter a { margin-left: 0.5rem; color: var(--muted); }
